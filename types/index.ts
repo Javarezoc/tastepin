@@ -10,18 +10,12 @@ export interface Estabelecimento {
   cidade?: string
   estado?: string
   google_maps_url?: string
-  telefone?: string
-  website?: string
-  email?: string
-  horario_funcionamento?: string
   plano: "basico" | "pro"
   status: "pendente" | "ativo" | "inativo" | "rejeitado"
   created_at: string
   updated_at: string
   categorias?: Categoria[]
   ambientes?: Ambiente[]
-  media_avaliacao?: number
-  total_avaliacoes?: number
 }
 
 export interface Categoria {
@@ -54,7 +48,6 @@ export interface Avaliacao {
   nota: number
   comentario: string
   created_at: string
-  updated_at: string
   usuarios?: {
     nome: string
     avatar_url?: string
