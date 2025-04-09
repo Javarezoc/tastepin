@@ -1,63 +1,62 @@
-import type { Avaliacao } from "@/types"
-import { Star } from 'lucide-react'
-import { format } from "date-fns"
+import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import type { Avaliacao } from "@/types"
 
 interface AvaliacaoCardProps {
   avaliacao: Avaliacao
 }
 
 export default function AvaliacaoCard({ avaliacao }: AvaliacaoCardProps) {
-  const usuario = avaliacao.usuario
+  const usuario = avaliacao.usuarios
 
   if (!usuario) return null
 
-  const iniciais = usuario.nome
-    ? usuario.nome
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-    : "??"
-
-  const dataFormatada = format(new Date(avaliacao.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
+  // Formatar a data relativa (ex: "há 2 dias")
+  const dataRelativa = formatDistanceToNow(new Date(avaliacao.created_at), {
+    addSuffix: true,
+    locale: ptBR,
+  })
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white">
+    <div className="bg-[#1e1e1e] p-5 rounded-xl mb-4 border border-gray-700">
+      <div className="flex items-center mb-4">
+        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700 mr-3">
           {usuario.avatar_url ? (
-            <img src={usuario.avatar_url || "/placeholder.svg"} alt={usuario.nome} className="w-10 h-10 rounded-full object-cover" />
+            <img src={usuario.avatar_url || "/placeholder.svg"} alt={usuario.nome} className="w-full h-full object-cover" />
           ) : (
-            <span>{iniciais}</span>
+            <div className="w-full h-full flex items-center justify-center bg-orange-500 text-white font-bold">
+              {usuario.nome.charAt(0).toUpperCase()}
+            </div>
           )}
         </div>
         <div>
-          <h4 className="font-medium text-white">{usuario.nome}</h4>
-          <p className="text-xs text-gray-400">{dataFormatada}</p>
+          <h4 className="text-white font-medium">{usuario.nome}</h4>
+          <p className="text-gray-400 text-sm">{dataRelativa}</p>
         </div>
       </div>
-      
-      <div className="flex items-center mb-2">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`h-4 w-4 ${star <= avaliacao.nota ? "text-yellow-500 fill-yellow-500" : "text-gray-600"}`}
-          />
+
+      <div className="flex items-center mb-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <svg
+            key={i}
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill={i < avaliacao.nota ? "#f59e0b" : "none"}
+            stroke="#f59e0b"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-1"
+          >
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
         ))}
+        <span className="text-white ml-2">{avaliacao.nota}/5</span>
       </div>
 
-      <div className="flex flex-col gap-2 text-sm text-gray-300">
-        <div className="flex items-center gap-2">
-          <span className="font-medium">Visitou:</span>
-          <span>{avaliacao.visitou ? "Sim" : "Não"}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="font-medium">Atende requisitos:</span>
-          <span>{avaliacao.atende_requisitos ? "Sim" : "Não"}</span>
-        </div>
-      </div>
+      <p className="text-gray-300">{avaliacao.comentario}</p>
     </div>
   )
 }
