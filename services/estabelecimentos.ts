@@ -52,14 +52,14 @@ export async function getEstabelecimentos(filtros?: Filtros): Promise<Estabeleci
   let resultado = estabelecimentos;
   if (filtros?.categorias && filtros.categorias.length > 0) {
     resultado = resultado.filter(est => 
-      est.categorias?.some(cat => filtros.categorias?.includes(cat.slug))
+      est.categorias?.some((cat: Categoria) => filtros.categorias?.includes(cat.slug))
     );
   }
   
   // Filtrar por ambientes se necessário
   if (filtros?.ambientes && filtros.ambientes.length > 0) {
     resultado = resultado.filter(est => 
-      est.ambientes?.some(amb => filtros.ambientes?.includes(amb.slug))
+      est.ambientes?.some((amb: Categoria) => filtros.ambientes?.includes(amb.slug))
     );
   }
   
