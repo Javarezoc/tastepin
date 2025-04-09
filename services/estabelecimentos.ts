@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase"
-import type { Ambiente, Categoria, Estabelecimento, Filtros } from "@/types"
+import type { Ambiente, Categoria, Estabelecimento, Filtros, Avaliacao } from "@/types"
 
 // Função para gerar uma URL de imagem com base no nome do estabelecimento
 function gerarImagemEstabelecimento(nome: string, id: string): string {
@@ -26,6 +26,51 @@ function gerarImagemEstabelecimento(nome: string, id: string): string {
 
   // Retornar URL de placeholder com a query
   return `/placeholder.svg?height=400&width=600&query=${encodeURIComponent(query)}`
+}
+
+export async function getEstabelecimentos(): Promise<Estabelecimento[]> {
+  const supabase = createServerSupabaseClient()
+
+  // Buscar todos os estabelecimentos ativos
+  const { data: estabelecimentos, error } = await supabase
+    .from("estabelecimentos")
+    .select("*")
+    .eq("status", "ativo")
+
+  if (error) {
+    console.error("Erro ao buscar estabelecimentos:", error)
+    return []
+  }
+
+  // Para cada estabelecimento, buscar suas categorias e ambientes
+  const estabelecimentosCompletos = await Promise.all(
+    estabelecimentos.map(async (estabelecimento) => {
+      // Buscar categorias
+      const { data: categorias } = await supabase
+        .from("estabelecimento_categorias")
+        .select("categorias(id, nome, tipo, slug)")
+        .eq("estabelecimento_id", estabelecimento.id)
+
+      // Buscar ambientes
+      const { data: ambientes } = await supabase
+        .from("estabelecimento_ambientes")
+        .select("ambientes(id, nome, slug)")
+        .eq("estabelecimento_id", estabelecimento.id)
+
+      // Adicionar imagem relacionada ao nome se não existir
+      if (!estabelecimento.imagem_capa) {
+        estabelecimento.imagem_capa = gerarImagemEstabelecimento(estabelecimento.nome, estabelecimento.id)
+      }
+
+      return {
+        ...estabelecimento,
+        categorias: (categorias?.map((c) => c.categorias) as Categoria[]) || [],
+        ambientes: (ambientes?.map((a) => a.ambientes) as Ambiente[]) || [],
+      }
+    }),
+  )
+
+  return estabelecimentosCompletos
 }
 
 export async function getEstabelecimentosEmDestaque(): Promise<Estabelecimento[]> {
@@ -75,6 +120,45 @@ export async function getEstabelecimentosEmDestaque(): Promise<Estabelecimento[]
   return estabelecimentosCompletos
 }
 
+export async function getEstabelecimentoById(id: string): Promise<Estabelecimento | null> {
+  const supabase = createServerSupabaseClient()
+
+  // Buscar estabelecimento pelo ID
+  const { data: estabelecimento, error } = await supabase
+    .from("estabelecimentos")
+    .select("*")
+    .eq("id", id)
+    .single()
+
+  if (error || !estabelecimento) {
+    console.error("Erro ao buscar estabelecimento:", error)
+    return null
+  }
+
+  // Buscar categorias
+  const { data: categorias } = await supabase
+    .from("estabelecimento_categorias")
+    .select("categorias(id, nome, tipo, slug)")
+    .eq("estabelecimento_id", id)
+
+  // Buscar ambientes
+  const { data: ambientes } = await supabase
+    .from("estabelecimento_ambientes")
+    .select("ambientes(id, nome, slug)")
+    .eq("estabelecimento_id", id)
+
+  // Adicionar imagem relacionada ao nome se não existir
+  if (!estabelecimento.imagem_capa) {
+    estabelecimento.imagem_capa = gerarImagemEstabelecimento(estabelecimento.nome, estabelecimento.id)
+  }
+
+  return {
+    ...estabelecimento,
+    categorias: (categorias?.map((c) => c.categorias) as Categoria[]) || [],
+    ambientes: (ambientes?.map((a) => a.ambientes) as Ambiente[]) || [],
+  }
+}
+
 export async function buscarEstabelecimentos(filtros: Filtros): Promise<Estabelecimento[]> {
   const supabase = createServerSupabaseClient()
 
@@ -83,6 +167,11 @@ export async function buscarEstabelecimentos(filtros: Filtros): Promise<Estabele
   // Aplicar filtro por tipo
   if (filtros.tipo && filtros.tipo !== "todos") {
     query = query.eq("tipo", filtros.tipo)
+  }
+
+  // Aplicar filtro por bairro
+  if (filtros.bairro && filtros.bairro !== "todos") {
+    query = query.eq("bairro", filtros.bairro)
   }
 
   // Buscar estabelecimentos
@@ -207,4 +296,22 @@ export async function getBairrosSP(): Promise<string[]> {
     "Vila Mariana",
     "Vila Olímpia",
   ]
+}
+
+export async function getAvaliacoes(estabelecimentoId: string): Promise<Avaliacao[]> {
+  const supabase = createServerSupabaseClient()
+
+  // Buscar avaliações para o estabelecimento
+  const { data, error } = await supabase
+    .from("avaliacoes")
+    .select("*, usuarios(nome, avatar_url)")
+    .eq("estabelecimento_id", estabelecimentoId)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Erro ao buscar avaliações:", error)
+    return []
+  }
+
+  return data || []
 }
