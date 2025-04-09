@@ -40,3 +40,17 @@ export interface Filtros {
   busca?: string
   bairro?: string
 }
+
+export interface Avaliacao {
+  id: string
+  estabelecimento_id: string
+  usuario_id: string
+  nota: number
+  comentario: string
+  created_at: string
+  updated_at: string
+  usuarios?: {
+    nome: string
+    avatar_url?: string
+  }
+}
