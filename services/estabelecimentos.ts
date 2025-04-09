@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase"
-import type { Ambiente, Categoria, Estabelecimento, Filtros, Avaliacao } from "@/types"
+import type { Ambiente, Categoria, Estabelecimento, Filtros } from "@/types"
 
 // Função para gerar uma URL de imagem com base no nome do estabelecimento
 function gerarImagemEstabelecimento(nome: string, id: string): string {
@@ -28,71 +28,6 @@ function gerarImagemEstabelecimento(nome: string, id: string): string {
   return `/placeholder.svg?height=400&width=600&query=${encodeURIComponent(query)}`
 }
 
-export async function getEstabelecimentos(): Promise<Estabelecimento[]> {
-  const supabase = createServerSupabaseClient()
-
-  // Buscar todos os estabelecimentos ativos
-  const { data: estabelecimentos, error } = await supabase
-    .from("estabelecimentos")
-    .select("*")
-    .eq("status", "ativo")
-
-  if (error) {
-    console.error("Erro ao buscar estabelecimentos:", error)
-    return []
-  }
-
-  // Para cada estabelecimento, buscar suas categorias e ambientes
-  const estabelecimentosCompletos = await Promise.all(
-    estabelecimentos.map(async (estabelecimento) => {
-      // Buscar categorias
-      const { data: categoriasData } = await supabase
-        .from("estabelecimento_categorias")
-        .select("categorias(id, nome, tipo, slug)")
-        .eq("estabelecimento_id", estabelecimento.id)
-
-      // Buscar ambientes
-      const { data: ambientesData } = await supabase
-        .from("estabelecimento_ambientes")
-        .select("ambientes(id, nome, slug)")
-        .eq("estabelecimento_id", estabelecimento.id)
-
-      // Extrair categorias e ambientes dos dados aninhados
-      const categorias: Categoria[] = categoriasData
-        ? categoriasData.map((c) => ({
-            id: c.categorias.id,
-            nome: c.categorias.nome,
-            tipo: c.categorias.tipo,
-            slug: c.categorias.slug,
-            created_at: new Date().toISOString(), // Valor padrão
-          }))
-        : []
-
-      const ambientes: Ambiente[] = ambientesData
-        ? ambientesData.map((a) => ({
-            id: a.ambientes.id,
-            nome: a.ambientes.nome,
-            slug: a.ambientes.slug,
-            created_at: new Date().toISOString(), // Valor padrão
-          }))
-        : []
-
-      // Adicionar imagem relacionada ao nome se não existir
-      if (!estabelecimento.imagem_capa) {
-        estabelecimento.imagem_capa = gerarImagemEstabelecimento(estabelecimento.nome, estabelecimento.id)
-      }
-
-      return {
-        ...estabelecimento,
-        categorias,
-        ambientes,
-      }
-    }),
-  )
-
-  return estabelecimentosCompletos
-}
-
 export async function getEstabelecimentosEmDestaque(): Promise<Estabelecimento[]> {
   const supabase = createServerSupabaseClient()
 
@@ -113,36 +48,32 @@ export async function getEstabelecimentosEmDestaque(): Promise<Estabelecimento[]
   const estabelecimentosCompletos = await Promise.all(
     estabelecimentos.map(async (estabelecimento) => {
       // Buscar categorias
-      const { data: categoriasData } = await supabase
+      const { data: categoriasRelacionadas } = await supabase
         .from("estabelecimento_categorias")
-        .select("categorias(id, nome, tipo, slug)")
+        .select("categoria_id")
         .eq("estabelecimento_id", estabelecimento.id)
+
+      let categorias: Categoria[] = []
+      if (categoriasRelacionadas && categoriasRelacionadas.length > 0) {
+        const categoriaIds = categoriasRelacionadas.map((rel) => rel.categoria_id)
+        const { data: categoriasData } = await supabase.from("categorias").select("*").in("id", categoriaIds)
+
+        categorias = categoriasData || []
+      }
 
       // Buscar ambientes
-      const { data: ambientesData } = await supabase
+      const { data: ambientesRelacionados } = await supabase
         .from("estabelecimento_ambientes")
-        .select("ambientes(id, nome, slug)")
+        .select("ambiente_id")
         .eq("estabelecimento_id", estabelecimento.id)
 
-      // Extrair categorias e ambientes dos dados aninhados
-      const categorias: Categoria[] = categoriasData
-        ? categoriasData.map((c) => ({
-            id: c.categorias.id,
-            nome: c.categorias.nome,
-            tipo: c.categorias.tipo,
-            slug: c.categorias.slug,
-            created_at: new Date().toISOString(), // Valor padrão
-          }))
-        : []
+      let ambientes: Ambiente[] = []
+      if (ambientesRelacionados && ambientesRelacionados.length > 0) {
+        const ambienteIds = ambientesRelacionados.map((rel) => rel.ambiente_id)
+        const { data: ambientesData } = await supabase.from("ambientes").select("*").in("id", ambienteIds)
 
-      const ambientes: Ambiente[] = ambientesData
-        ? ambientesData.map((a) => ({
-            id: a.ambientes.id,
-            nome: a.ambientes.nome,
-            slug: a.ambientes.slug,
-            created_at: new Date().toISOString(), // Valor padrão
-          }))
-        : []
+        ambientes = ambientesData || []
+      }
 
       // Adicionar imagem relacionada ao nome se não existir
       if (!estabelecimento.imagem_capa) {
@@ -160,81 +91,6 @@ export async function getEstabelecimentosEmDestaque(): Promise<Estabelecimento[]
   return estabelecimentosCompletos
 }
 
-export async function getEstabelecimentoById(id: string): Promise<Estabelecimento | null> {
-  const supabase = createServerSupabaseClient()
-
-  // Buscar estabelecimento pelo ID
-  const { data: estabelecimento, error } = await supabase
-    .from("estabelecimentos")
-    .select("*")
-    .eq("id", id)
-    .single()
-
-  if (error || !estabelecimento) {
-    console.error("Erro ao buscar estabelecimento:", error)
-    return null
-  }
-
-  // Buscar categorias
-  const { data: categoriasData } = await supabase
-    .from("estabelecimento_categorias")
-    .select("categorias(id, nome, tipo, slug)")
-    .eq("estabelecimento_id", id)
-
-  // Buscar ambientes
-  const { data: ambientesData } = await supabase
-    .from("estabelecimento_ambientes")
-    .select("ambientes(id, nome, slug)")
-    .eq("estabelecimento_id", id)
-
-  // Extrair categorias e ambientes dos dados aninhados
-  const categorias: Categoria[] = categoriasData
-    ? categoriasData.map((c) => ({
-        id: c.categorias.id,
-        nome: c.categorias.nome,
-        tipo: c.categorias.tipo,
-        slug: c.categorias.slug,
-        created_at: new Date().toISOString(), // Valor padrão
-      }))
-    : []
-
-  const ambientes: Ambiente[] = ambientesData
-    ? ambientesData.map((a) => ({
-        id: a.ambientes.id,
-        nome: a.ambientes.nome,
-        slug: a.ambientes.slug,
-        created_at: new Date().toISOString(), // Valor padrão
-      }))
-    : []
-
-  // Buscar avaliações para calcular média
-  const { data: avaliacoes, error: avaliacoesError } = await supabase
-    .from("avaliacoes")
-    .select("nota")
-    .eq("estabelecimento_id", id)
-
-  let media_avaliacao = 0
-  let total_avaliacoes = 0
-
-  if (!avaliacoesError && avaliacoes && avaliacoes.length > 0) {
-    total_avaliacoes = avaliacoes.length
-    media_avaliacao = avaliacoes.reduce((acc, curr) => acc + curr.nota, 0) / total_avaliacoes
-  }
-
-  // Adicionar imagem relacionada ao nome se não existir
-  if (!estabelecimento.imagem_capa) {
-    estabelecimento.imagem_capa = gerarImagemEstabelecimento(estabelecimento.nome, estabelecimento.id)
-  }
-
-  return {
-    ...estabelecimento,
-    categorias,
-    ambientes,
-    media_avaliacao,
-    total_avaliacoes
-  }
-}
-
 export async function buscarEstabelecimentos(filtros: Filtros): Promise<Estabelecimento[]> {
   const supabase = createServerSupabaseClient()
 
@@ -243,11 +99,6 @@ export async function buscarEstabelecimentos(filtros: Filtros): Promise<Estabele
   // Aplicar filtro por tipo
   if (filtros.tipo && filtros.tipo !== "todos") {
     query = query.eq("tipo", filtros.tipo)
-  }
-
-  // Aplicar filtro por bairro
-  if (filtros.bairro && filtros.bairro !== "todos") {
-    query = query.eq("bairro", filtros.bairro)
   }
 
   // Buscar estabelecimentos
@@ -265,36 +116,32 @@ export async function buscarEstabelecimentos(filtros: Filtros): Promise<Estabele
   let estabelecimentosCompletos = await Promise.all(
     estabelecimentosFiltrados.map(async (estabelecimento) => {
       // Buscar categorias
-      const { data: categoriasData } = await supabase
+      const { data: categoriasRelacionadas } = await supabase
         .from("estabelecimento_categorias")
-        .select("categorias(id, nome, tipo, slug)")
+        .select("categoria_id")
         .eq("estabelecimento_id", estabelecimento.id)
+
+      let categorias: Categoria[] = []
+      if (categoriasRelacionadas && categoriasRelacionadas.length > 0) {
+        const categoriaIds = categoriasRelacionadas.map((rel) => rel.categoria_id)
+        const { data: categoriasData } = await supabase.from("categorias").select("*").in("id", categoriaIds)
+
+        categorias = categoriasData || []
+      }
 
       // Buscar ambientes
-      const { data: ambientesData } = await supabase
+      const { data: ambientesRelacionados } = await supabase
         .from("estabelecimento_ambientes")
-        .select("ambientes(id, nome, slug)")
+        .select("ambiente_id")
         .eq("estabelecimento_id", estabelecimento.id)
 
-      // Extrair categorias e ambientes dos dados aninhados
-      const categorias: Categoria[] = categoriasData
-        ? categoriasData.map((c) => ({
-            id: c.categorias.id,
-            nome: c.categorias.nome,
-            tipo: c.categorias.tipo,
-            slug: c.categorias.slug,
-            created_at: new Date().toISOString(), // Valor padrão
-          }))
-        : []
+      let ambientes: Ambiente[] = []
+      if (ambientesRelacionados && ambientesRelacionados.length > 0) {
+        const ambienteIds = ambientesRelacionados.map((rel) => rel.ambiente_id)
+        const { data: ambientesData } = await supabase.from("ambientes").select("*").in("id", ambienteIds)
 
-      const ambientes: Ambiente[] = ambientesData
-        ? ambientesData.map((a) => ({
-            id: a.ambientes.id,
-            nome: a.ambientes.nome,
-            slug: a.ambientes.slug,
-            created_at: new Date().toISOString(), // Valor padrão
-          }))
-        : []
+        ambientes = ambientesData || []
+      }
 
       // Adicionar imagem relacionada ao nome se não existir
       if (!estabelecimento.imagem_capa) {
@@ -392,22 +239,4 @@ export async function getBairrosSP(): Promise<string[]> {
     "Vila Mariana",
     "Vila Olímpia",
   ]
-}
-
-export async function getAvaliacoes(estabelecimentoId: string): Promise<Avaliacao[]> {
-  const supabase = createServerSupabaseClient()
-
-  // Buscar avaliações para o estabelecimento
-  const { data, error } = await supabase
-    .from("avaliacoes")
-    .select("*, usuarios(nome, avatar_url)")
-    .eq("estabelecimento_id", estabelecimentoId)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Erro ao buscar avaliações:", error)
-    return []
-  }
-
-  return data || []
 }
