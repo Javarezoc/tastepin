@@ -1,32 +1,6 @@
-import { Suspense } from 'react';
-import { getEstabelecimentos, getCategorias, getAmbientes } from '@/services/estabelecimentos';
-import EstabelecimentoCard from '@/components/estabelecimento-card';
-import FiltrosComponent from '@/components/filtros';
-import { Filtros } from '@/types';
+import Link from 'next/link';
 
-interface HomePageProps {
-  searchParams: {
-    tipo?: string;
-    categorias?: string;
-    ambientes?: string;
-    busca?: string;
-  };
-}
-
-export default async function HomePage({ searchParams }: HomePageProps) {
-  // Converter parâmetros de busca para filtros
-  const filtros: Filtros = {
-    tipo: searchParams.tipo as Filtros['tipo'] || 'todos',
-    categorias: searchParams.categorias?.split(',') || [],
-    ambientes: searchParams.ambientes?.split(',') || [],
-    busca: searchParams.busca || ''
-  };
-  
-  // Buscar dados
-  const estabelecimentos = await getEstabelecimentos(filtros);
-  const categorias = await getCategorias();
-  const ambientes = await getAmbientes();
-  
+export default function HomePage() {
   return (
     <div>
       {/* Hero Section */}
@@ -49,31 +23,16 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       </section>
       
       <div className="container mx-auto px-4 py-8">
-        <FiltrosComponent 
-          categorias={categorias} 
-          ambientes={ambientes} 
-          filtrosIniciais={filtros}
-        />
-        
-        <Suspense fallback={<div className="text-center py-12 text-white">Carregando...</div>}>
-          {estabelecimentos.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {estabelecimentos.map(estabelecimento => (
-                <EstabelecimentoCard 
-                  key={estabelecimento.id} 
-                  estabelecimento={estabelecimento} 
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 bg-gray-800 rounded-lg">
-              <h3 className="text-xl font-medium mb-2 text-white">Nenhum resultado encontrado</h3>
-              <p className="text-gray-400">
-                Tente ajustar seus filtros para encontrar mais opções
-              </p>
-            </div>
-          )}
-        </Suspense>
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold mb-4">Bem-vindo ao TastePin</h2>
+          <p className="mb-8">Estamos configurando o site para você. Em breve você poderá explorar os melhores estabelecimentos.</p>
+          <Link 
+            href="/planos" 
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-colors"
+          >
+            Conheça nossos planos
+          </Link>
+        </div>
       </div>
     </div>
   );
