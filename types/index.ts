@@ -16,6 +16,8 @@ export interface Estabelecimento {
   updated_at: string
   categorias?: Categoria[]
   ambientes?: Ambiente[]
+  media_avaliacao?: number
+  total_avaliacoes?: number
 }
 
 export interface Categoria {
