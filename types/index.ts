@@ -10,6 +10,10 @@ export interface Estabelecimento {
   cidade?: string
   estado?: string
   google_maps_url?: string
+  telefone?: string
+  website?: string
+  email?: string
+  horario_funcionamento?: string
   plano: "basico" | "pro"
   status: "pendente" | "ativo" | "inativo" | "rejeitado"
   created_at: string
