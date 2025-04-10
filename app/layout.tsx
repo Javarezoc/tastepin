@@ -1,64 +1,61 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import Link from 'next/link';
+import type React from "react"
+import "./globals.css"
+import Link from "next/link"
+import { ErrorBoundary } from "react-error-boundary"
+import ErrorFallback from "@/components/error-fallback"
 
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: 'TastePin - Descubra os melhores lugares para comer e beber',
-  description: 'Encontre os melhores restaurantes, bares e cafés em São Paulo',
-};
+export const metadata = {
+  title: "TastePin - Descubra os melhores lugares para comer e beber",
+  description: "Encontre e filtre locais para comer e beber na cidade de São Paulo com base nas suas preferências.",
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="pt-BR">
-      <body className={inter.className}>
-        <div className="flex flex-col min-h-screen">
-          <header className="bg-gray-900 border-b border-gray-800">
-            <div className="container mx-auto py-4 px-4 flex justify-between items-center">
-              <Link href="/" className="text-xl font-bold text-orange-500">
-                Taste<span className="text-white">Pin</span>
-              </Link>
-              <nav className="hidden md:flex gap-4">
-                <Link href="/" className="text-white hover:text-orange-500 transition-colors">
-                  Início
+      <body className="bg-[#171717] text-white">
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <header className="bg-[#171717] border-b border-gray-800">
+            <div className="container mx-auto px-4 py-4">
+              <div className="flex justify-between items-center">
+                <Link href="/" className="text-2xl font-bold text-orange-500">
+                  TastePin
                 </Link>
-                <Link href="/estabelecimentos" className="text-white hover:text-orange-500 transition-colors">
-                  Estabelecimentos
-                </Link>
-                <Link href="/planos" className="text-white hover:text-orange-500 transition-colors">
-                  Planos
-                </Link>
-              </nav>
-              <Link
-                href="/login"
-                className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors"
-              >
-                Entrar
-              </Link>
+
+                <div className="flex items-center space-x-6">
+                  <Link href="/" className="text-white hover:text-orange-500 transition-colors">
+                    Início
+                  </Link>
+                  <Link href="/sobre" className="text-white hover:text-orange-500 transition-colors">
+                    Sobre
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="bg-orange-500 text-white px-5 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    Entrar
+                  </Link>
+                </div>
+              </div>
             </div>
           </header>
-          
-          <main className="flex-1">
-            {children}
-          </main>
-          
-          <footer className="bg-gray-900 border-t border-gray-800 py-8">
+
+          {children}
+
+          <footer className="bg-[#171717] border-t border-gray-800 py-10">
             <div className="container mx-auto px-4">
               <div className="flex flex-col md:flex-row justify-between items-center">
-                <div className="mb-4 md:mb-0">
-                  <Link href="/" className="text-xl font-bold text-orange-500">
-                    Taste<span className="text-white">Pin</span>
+                <div className="mb-6 md:mb-0">
+                  <Link href="/" className="text-2xl font-bold text-orange-500">
+                    TastePin
                   </Link>
                   <p className="text-gray-400 mt-2">Descubra os melhores lugares para comer e beber em São Paulo</p>
                 </div>
 
-                <div className="flex space-x-4">
+                <div className="flex space-x-6">
                   <Link href="/termos" className="text-gray-400 hover:text-white transition-colors">
                     Termos de Uso
                   </Link>
@@ -76,8 +73,8 @@ export default function RootLayout({
               </div>
             </div>
           </footer>
-        </div>
+        </ErrorBoundary>
       </body>
     </html>
-  );
+  )
 }
