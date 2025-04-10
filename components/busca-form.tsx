@@ -83,22 +83,22 @@ export default function BuscaForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-[#1e1e1e] p-6 rounded-xl shadow-lg minimal-shadow border border-gray-700"
+      className="bg-[#1e1e1e] p-4 md:p-6 rounded-xl shadow-lg minimal-shadow border border-gray-700"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="w-auto flex-none">
           <input
             type="text"
             placeholder="O que você está procurando?"
-            className="w-full p-3 border border-gray-600 bg-[#2a2a2a] text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+            className="w-full p-2 md:p-3 border border-gray-600 bg-[#2a2a2a] text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-sm"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
         </div>
 
-        <div>
+        <div className="w-auto flex-none">
           <select
-            className="w-full p-3 border border-gray-600 bg-[#2a2a2a] text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+            className="w-full p-2 md:p-3 border border-gray-600 bg-[#2a2a2a] text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-sm"
             value={tipo}
             onChange={(e) => setTipo(e.target.value)}
             aria-label="Tipo de estabelecimento"
@@ -110,9 +110,9 @@ export default function BuscaForm({
           </select>
         </div>
 
-        <div>
+        <div className="w-auto flex-none">
           <select
-            className="w-full p-3 border border-gray-600 bg-[#2a2a2a] text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+            className="w-full p-2 md:p-3 border border-gray-600 bg-[#2a2a2a] text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-sm"
             value={categoria}
             onChange={(e) => setCategoria(e.target.value)}
             aria-label="Categoria gastronômica"
@@ -138,9 +138,9 @@ export default function BuscaForm({
           </select>
         </div>
 
-        <div>
+        <div className="w-auto flex-none">
           <select
-            className="w-full p-3 border border-gray-600 bg-[#2a2a2a] text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+            className="w-full p-2 md:p-3 border border-gray-600 bg-[#2a2a2a] text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-sm"
             value={ambiente}
             onChange={(e) => setAmbiente(e.target.value)}
             aria-label="Ambiente"
@@ -164,41 +164,39 @@ export default function BuscaForm({
           </select>
         </div>
 
-        <div className="lg:col-span-5 md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-3">
-            <select
-              className="w-full p-3 border border-gray-600 bg-[#2a2a2a] text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-              value={bairro}
-              onChange={(e) => setBairro(e.target.value)}
-              aria-label="Bairro"
-            >
-              <option value="todos">Todos os bairros</option>
-              {bairros && bairros.length > 0 ? (
-                bairros.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))
-              ) : (
-                <>
-                  <option value="pinheiros">Pinheiros</option>
-                  <option value="vila-madalena">Vila Madalena</option>
-                  <option value="itaim-bibi">Itaim Bibi</option>
-                  <option value="jardins">Jardins</option>
-                  <option value="moema">Moema</option>
-                </>
-              )}
-            </select>
-          </div>
+        <div className="w-auto flex-none">
+          <select
+            className="w-full p-2 md:p-3 border border-gray-600 bg-[#2a2a2a] text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-sm"
+            value={bairro}
+            onChange={(e) => setBairro(e.target.value)}
+            aria-label="Bairro"
+          >
+            <option value="todos">Todos os bairros</option>
+            {bairros && bairros.length > 0 ? (
+              bairros.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))
+            ) : (
+              <>
+                <option value="pinheiros">Pinheiros</option>
+                <option value="vila-madalena">Vila Madalena</option>
+                <option value="itaim-bibi">Itaim Bibi</option>
+                <option value="jardins">Jardins</option>
+                <option value="moema">Moema</option>
+              </>
+            )}
+          </select>
+        </div>
 
-          <div className="md:col-span-1">
-            <button
-              type="submit"
-              className="w-full bg-orange-500 text-white py-3 px-6 rounded-lg hover:bg-orange-600 transition-all font-medium"
-            >
-              BUSCAR
-            </button>
-          </div>
+        <div className="w-auto flex-none ml-auto">
+          <button
+            type="submit"
+            className="w-full bg-orange-500 text-white py-2 md:py-3 px-4 md:px-6 rounded-lg hover:bg-orange-600 transition-all font-medium text-sm"
+          >
+            BUSCAR
+          </button>
         </div>
       </div>
     </form>
