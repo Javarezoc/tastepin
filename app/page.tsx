@@ -101,7 +101,7 @@ export default function Home() {
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             Descubra os <span className="text-orange-500">melhores lugares</span> para comer e beber
           </h1>
-          <p className="text-xl mb-10 max-w-2xl">
+          <p className="text-xl mb-10 max-w-2xl bg-black bg-opacity-70 p-4 rounded-lg shadow-lg border-l-4 border-orange-500 font-medium">
             Encontre e filtre locais para comer e beber na cidade de São Paulo com base nas suas preferências.
           </p>
 
